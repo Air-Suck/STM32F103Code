@@ -1,0 +1,341 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;;各种基地址
+    2 00000000         ;RCC_BASE   EQU  0x40023800
+    3 00000000         ;GPIOA_BASE   EQU  0x40020000
+    4 00000000         ;TIM2_BASE   EQU  0x40000000
+    5 00000000         ;NVIC_BASE   EQU  0xE000E100
+    6 00000000         
+    7 00000000         ;;使用GPIOA_Pin_5
+    8 00000000         ;;不能使用GPIOB_Pin_13是由于该口仅在使用F30
+                       2板子的时候关闭（导通）
+    9 00000000         ;;RCC_AHB1ENR寄存器配置，使能GPIOA端口
+   10 00000000         ;RCC_AHB1ENR_OFFSET EQU  0x30
+   11 00000000         ;RCC_AHB1_ENR  EQU  RCC_AHB1ENR_OFFSET+RCC_BASE
+   12 00000000         ;RCC_AHB1_GPIOA_ENR EQU  1<<0
+   13 00000000         ;;GPIOx_MODER寄存器配置,将端口A设置为通用�
+                       �出模式
+   14 00000000         ;GPIOA_MODER_OFFSET EQU  0x00
+   15 00000000         ;GPIOA_MODER   EQU  GPIOA_BASE+GPIOA_MODER_OFFSET
+   16 00000000         ;GPIOA_PIN_OUTPUT EQU  1<<10
+   17 00000000         ;;GPIOx_OTYPER寄存器配置，将端口A的输出类�
+                       �改为推挽输出模式
+   18 00000000         ;GPIOA_OTYPER_OFFSET EQU  0x04
+   19 00000000         ;GPIOA_OTYPER  EQU  GPIOA_BASE+GPIOA_OTYPER_OFFSET
+   20 00000000         ;GPIOA_MODE   EQU  ~(1<<5)
+   21 00000000         ;;GPIOx_OSPEEDR寄存器配置，将端口A的输出速�
+                       ��改为高速模式
+   22 00000000         ;GPIOA_OSPEEDR_OFFSET EQU   0x08
+   23 00000000         ;GPIOA_OSPEEDR  EQU  GPIOA_BASE+GPIOA_OSPEEDR_OFFSET
+   24 00000000         ;GPIOA_HIGH   EQU  1<<11
+   25 00000000         ;;GPIOx_ODR寄存器设置，修改端口的输出电平
+                        
+   26 00000000         ;GPIOA_ODR_OFFSET EQU  0x14
+   27 00000000         ;GPIOA_ODR   EQU  GPIOA_BASE+GPIOA_ODR_OFFSET
+   28 00000000         ;LED_ON    EQU  1<<5
+   29 00000000         ;LED_OFF    EQU  ~(1<<5)
+   30 00000000         
+   31 00000000         ;;配置TIM2时钟
+   32 00000000         ;;外设时钟TIM2使能(TIM2是挂载在APB1外设总�
+                       �上的
+   33 00000000         ;RCC_APB1_OFFSET  EQU  0x40
+   34 00000000         ;RCC_APB1   EQU  RCC_BASE+RCC_APB1_OFFSET
+   35 00000000         ;RCC_TIM2_ENR  EQU  1<<0;TIM2外设时钟使能
+   36 00000000         ;;配置时基单元(时基单元是在外设时钟内�
+                       �的，输入的时钟频率为APB1总线的时钟频率
+                       )
+   37 00000000         ;;配置分频器
+   38 00000000         ;TIM2_PSC_OFFSET  EQU  0x28
+   39 00000000         ;TIM2_PSC   EQU  TIM2_BASE+TIM2_PSC_OFFSET
+   40 00000000         ;TIM2_PSC_CONFIG  EQU  8400-1
+   41 00000000         ;;配置自动装载值
+   42 00000000         ;TIM2_ARR_OFFSET  EQU  0x2C
+   43 00000000         ;TIM2_ARR   EQU  TIM2_ARR_OFFSET+TIM2_BASE
+   44 00000000         ;TIM2_ARR_CONFIG  EQU  10000-1
+   45 00000000         ;;配置计数器 
+   46 00000000         ;TIM2_CNT_OFFSET  EQU  0x24
+   47 00000000         ;TIM2_CNT   EQU  TIM2_BASE+TIM2_CNT_OFFSET
+   48 00000000         ;TIM2_CNT_CONFIG  EQU  0
+   49 00000000         ;;配置APB1总线的分频系数
+   50 00000000         ;RCC_CFGR_OFFSET  EQU  0x08
+   51 00000000         ;RCC_CFGR   EQU  RCC_BASE+RCC_CFGR_OFFSET
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   52 00000000         ;RCC_CFGR_CNF  EQU  1<<12
+   53 00000000         ;;配置时钟控制寄存器，选择计数模式并且
+                       使能时钟计数器开始计时
+   54 00000000         ;TIM2_CR1_OFFSET  EQU  0x00
+   55 00000000         ;TIM2_CR1   EQU  TIM2_CR1_OFFSET+TIM2_BASE
+   56 00000000         ;TIM2_CR1_UPCONT  EQU  ~(1<<4);向上计数模式
+   57 00000000         ;TIM2_CR1_CEN  EQU  1<<0;计数器使能
+   58 00000000         
+   59 00000000         ;;修改PLL_M的分频
+   60 00000000         ;;RCC_CR用于使能/失能PLL
+   61 00000000         ;SYS_CLK_HSI   EQU  0x03
+   62 00000000         ;RCC_CR_OFFSET  EQU  0x00
+   63 00000000         ;RCC_CR    EQU  RCC_BASE+RCC_CR_OFFSET
+   64 00000000         ;PLL_DISABLE   EQU  1<<24
+   65 00000000         ;PLL_M_DIV8   EQU  0x8
+   66 00000000         ;SYS_CLK_PLL   EQU  1<<1
+   67 00000000         ;PLL_ENABLE   EQU  1<<24
+   68 00000000         ;;RCC_PLLCFGR用于配置PLL的参数
+   69 00000000         ;RCC_PLLCFGR_OFFSET EQU  0x04
+   70 00000000         ;RCC_PLLCFGR   EQU  RCC_BASE+RCC_PLLCFGR_OFFSET
+   71 00000000         
+   72 00000000         ;;时钟的更新中断使能
+   73 00000000         ;TIM2_DIER_OFFSET EQU  0x0C
+   74 00000000         ;TIM2_DIER   EQU  TIM2_BASE+TIM2_DIER_OFFSET
+   75 00000000         ;TIM2_UI_EN   EQU  1<<0
+   76 00000000         ;;更新中断标志清除（发生一次计数器更新
+                       时TIM2的状态寄存器的更新中断位会被置为1
+                       ）
+   77 00000000         ;TIM2_SR_OFFSET  EQU  0x10
+   78 00000000         ;TIM2_SR    EQU  TIM2_BASE+TIM2_SR_OFFSET
+   79 00000000         ;TIM2_SR_UIF_CLEAR EQU  ~(1<<0)
+   80 00000000         ;TIM2_UIF_FLAG  EQU  0x01
+   81 00000000         ;;使能NVIC通道
+   82 00000000         ;NVIC_ISER0_OFFSET EQU  0;手册上的OFFSTE很怪
+   83 00000000         ;NVIC_ISER0   EQU  NVIC_BASE+NVIC_ISER0_OFFSET
+   84 00000000         ;NVIC_TIM2_EN  EQU  1<<28
+   85 00000000         
+   86 00000000         ;AREA |.test|,CODE,READONLY,ALIGN=2
+   87 00000000         ;THUMB
+   88 00000000         ;ENTRY
+   89 00000000         ;EXPORT __main
+   90 00000000         ;__main
+   91 00000000         ;BL GPIOA_Init
+   92 00000000         ;BL TIM2_Init
+   93 00000000         ;loop   
+   94 00000000         ;;另一种计数模式（不使用中断）
+   95 00000000         ;;LDR R0,=GPIOA_ODR
+   96 00000000         ;;LDR R1,[R0]
+   97 00000000         ;;ORR R1,#LED_ON
+   98 00000000         ;;STR R1,[R0]
+   99 00000000         ;;BL __wait
+  100 00000000         
+  101 00000000         ;;LDR R0,=GPIOA_ODR
+  102 00000000         ;;LDR R1,[R0]
+  103 00000000         ;;AND R1,#LED_OFF
+  104 00000000         ;;STR R1,[R0]
+  105 00000000         ;;BL __wait
+  106 00000000         ;B loop
+  107 00000000         
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+  108 00000000         ;;中断函数
+  109 00000000         ;TIM2_IRQHandler PROC
+  110 00000000         ;EXPORT TIM2_IRQHandler
+  111 00000000         ;PUSH{R0,R1,R2,LR}
+  112 00000000         
+  113 00000000         ;LDR R0,=GPIOA_ODR
+  114 00000000         ;;R1的值用于进行判断
+  115 00000000         ;LDR R1,[R0]
+  116 00000000         ;;R2的值用于后续的存储
+  117 00000000         ;LDR R2,[R0]
+  118 00000000         ;AND R1,#LED_ON
+  119 00000000         ;CMP R1,#LED_ON
+  120 00000000         ;;IT指令用于条件判断和分支选择
+  121 00000000         ;ITE EQ
+  122 00000000         ;;相等的情况下
+  123 00000000         ;ANDEQ R2,#LED_OFF
+  124 00000000         ;;不相等的情况下
+  125 00000000         ;ORRNE R2,#LED_ON
+  126 00000000         ;STR R2,[R0]
+  127 00000000         
+  128 00000000         ;;将更新中断的标志位清零
+  129 00000000         ;LDR R0,=TIM2_SR
+  130 00000000         ;LDR R1,[R0]
+  131 00000000         ;AND R1,#TIM2_SR_UIF_CLEAR
+  132 00000000         ;STR R1,[R0]
+  133 00000000         
+  134 00000000         ;POP{R0,R1,R2,PC}
+  135 00000000         ;ENDP
+  136 00000000         
+  137 00000000         ;;用于实现不使用中断闪烁的延时效果
+  138 00000000         ;__wait   PROC
+  139 00000000         ;PUSH{R0,R1,LR}
+  140 00000000         ;LDR R0,=TIM2_SR
+  141 00000000         ;lp    LDR R1,[R0]
+  142 00000000         ;AND R1,#TIM2_UIF_FLAG
+  143 00000000         ;CMP R1,#0x00
+  144 00000000         ;BEQ lp
+  145 00000000         
+  146 00000000         ;LDR R0,=TIM2_SR
+  147 00000000         ;LDR R1,[R0]
+  148 00000000         ;AND R1,#TIM2_SR_UIF_CLEAR
+  149 00000000         ;STR R1,[R0]
+  150 00000000         
+  151 00000000         ;POP{R0,R1,PC}
+  152 00000000         
+  153 00000000         ;ENDP
+  154 00000000         
+  155 00000000         
+  156 00000000         
+  157 00000000         ;;GPIOA的初始化
+  158 00000000         ;GPIOA_Init  PROC
+  159 00000000         ;EXPORT GPIOA_Init
+  160 00000000         ;PUSH{R0,R1,LR}
+  161 00000000         ;;使能GPIOA端口
+  162 00000000         ;LDR R0,=RCC_AHB1_ENR
+  163 00000000         ;LDR R1,[R0]
+  164 00000000         ;ORR R1,#RCC_AHB1_GPIOA_ENR
+  165 00000000         ;STR R1,[R0]
+  166 00000000         ;;将端口模式修改为通用输出模式
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  167 00000000         ;LDR R0,=GPIOA_MODER
+  168 00000000         ;LDR R1,[R0]
+  169 00000000         ;ORR R1,#GPIOA_PIN_OUTPUT
+  170 00000000         ;STR R1,[R0]
+  171 00000000         ;;将端口的输出类型修改为推挽输出
+  172 00000000         ;LDR R0,=GPIOA_OTYPER
+  173 00000000         ;LDR R1,[R0]
+  174 00000000         ;AND R1,#GPIOA_MODE
+  175 00000000         ;STR R1,[R0]
+  176 00000000         ;;将端口的输出速度设置为高速
+  177 00000000         ;LDR R0,=GPIOA_OSPEEDR
+  178 00000000         ;LDR R1,[R0]
+  179 00000000         ;ORR R1,#GPIOA_HIGH
+  180 00000000         ;STR R1,[R0]
+  181 00000000         
+  182 00000000         ;POP{R0,R1,PC}
+  183 00000000         
+  184 00000000         ;ENDP
+  185 00000000         
+  186 00000000         
+  187 00000000         
+  188 00000000         ;;TIM2的初始化
+  189 00000000         ;TIM2_Init  PROC
+  190 00000000         ;EXPORT TIM2_Init
+  191 00000000         ;PUSH{R0,R1,LR}
+  192 00000000         ;;TIM2使能
+  193 00000000         ;LDR R0,=RCC_APB1
+  194 00000000         ;LDR R1,[R0]
+  195 00000000         ;ORR R1,#RCC_TIM2_ENR
+  196 00000000         ;STR R1,[R0]
+  197 00000000         ;;设置TIM2的分频器
+  198 00000000         ;LDR R0,=TIM2_PSC
+  199 00000000         ;LDR R1,[R0]
+  200 00000000         ;MOVW R1,#TIM2_PSC_CONFIG;设置为8400-1
+  201 00000000         ;STR R1,[R0]
+  202 00000000         ;;设置TIM2的计数器
+  203 00000000         ;LDR R0,=TIM2_ARR
+  204 00000000         ;LDR R1,[R0]
+  205 00000000         ;MOVW R1,#TIM2_ARR_CONFIG;设置为10000-1
+  206 00000000         ;STR R1,[R0]
+  207 00000000         ;;清空TIM2计数器的值
+  208 00000000         ;LDR R0,=TIM2_CNT
+  209 00000000         ;LDR R1,[R0]
+  210 00000000         ;MOVW R1,#TIM2_CNT_CONFIG
+  211 00000000         ;STR R1,[R0]
+  212 00000000         ;;设置APB1的预分频系数为2（实际上在启动�
+                       ��件中已经设置了）
+  213 00000000         ;LDR R0,=RCC_CFGR
+  214 00000000         ;LDR R1,[R0]
+  215 00000000         ;ORR R1,#RCC_CFGR_CNF
+  216 00000000         ;STR R1,[R0]
+  217 00000000         
+  218 00000000         ;BL PLL_CNF;重新配置PLL
+  219 00000000         
+  220 00000000         ;;设置计数器的计数模式，并且启动计数器
+                       
+  221 00000000         ;LDR R0,=TIM2_CR1
+  222 00000000         ;LDR R1,[R0]
+  223 00000000         ;AND R1,#TIM2_CR1_UPCONT;默认是向上计数
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+  224 00000000         ;ORR R1,#TIM2_CR1_CEN
+  225 00000000         ;STR R1,[R0]
+  226 00000000         
+  227 00000000         ;BL IT_CNF
+  228 00000000         
+  229 00000000         ;POP{R0,R1,PC}
+  230 00000000         ;ENDP
+  231 00000000         
+  232 00000000         ;;中断配置
+  233 00000000         ;IT_CNF   PROC
+  234 00000000         ;EXPORT IT_CNF
+  235 00000000         ;PUSH{R0,R1,LR}
+  236 00000000         ;;更新中断使能
+  237 00000000         ;LDR R0,=TIM2_DIER
+  238 00000000         ;LDR R1,[R0]
+  239 00000000         ;ORR R1,#TIM2_UI_EN
+  240 00000000         ;STR R1,[R0]
+  241 00000000         ;;还能NVIC的通道（这里简化了许多，没有�
+                       �置中断优先级等）
+  242 00000000         ;LDR R0,=NVIC_ISER0
+  243 00000000         ;LDR R1,[R0]
+  244 00000000         ;ORR R1,#NVIC_TIM2_EN
+  245 00000000         ;STR R1,[R0]
+  246 00000000         
+  247 00000000         ;POP{R0,R1,PC}
+  248 00000000         ;ENDP
+  249 00000000         
+  250 00000000         ;;修改PLL详见子为博客
+  251 00000000         ;PLL_CNF   PROC
+  252 00000000         ;EXPORT PLL_CNF
+  253 00000000         ;PUSH{R0,R1,LR}
+  254 00000000         ;;更换系统时钟源为内部时钟
+  255 00000000         ;LDR R0,=RCC_CFGR
+  256 00000000         ;LDR R1,[R0]
+  257 00000000         ;BIC R1,R1,#SYS_CLK_HSI
+  258 00000000         ;STR R1,[R0]
+  259 00000000         ;;关闭PLL
+  260 00000000         ;LDR R0,=RCC_CR
+  261 00000000         ;LDR R1,[R0]
+  262 00000000         ;BIC R1,R1,#PLL_DISABLE
+  263 00000000         ;STR R1,[R0]
+  264 00000000         ;;将PLL_M的分频修改为8
+  265 00000000         ;LDR R0,=RCC_PLLCFGR
+  266 00000000         ;LDR R1,[R0]
+  267 00000000         ;BIC R1,R1,#0x3F
+  268 00000000         ;ORR R1,#PLL_M_DIV8
+  269 00000000         ;STR R1,[R0]
+  270 00000000         ;;将PLL选为系统时钟
+  271 00000000         ;LDR R0,=RCC_CFGR
+  272 00000000         ;LDR R1,[R0]
+  273 00000000         ;ORR R1,#SYS_CLK_PLL
+  274 00000000         ;STR R1,[R0]
+  275 00000000         ;;使能PLL
+  276 00000000         ;LDR R0,=RCC_CR
+  277 00000000         ;LDR R1,[R0]
+  278 00000000         ;ORR R1,#PLL_ENABLE
+  279 00000000         ;STR R1,[R0]
+  280 00000000         
+  281 00000000         ;POP{R0,R1,PC}
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+  282 00000000         ;ENDP
+  283 00000000         
+  284 00000000         ;END
+                       
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=..\obj\led.d -o..\obj\led.o -I.\RTE\_Target_1 -ID:\Keil5\ARM\PA
+CK\Keil\STM32F4xx_DFP\1.0.8\Device\Include -ID:\Keil5\ARM\CMSIS\Include --prede
+fine="__UVISION_VERSION SETA 524" --predefine="STM32F401xx SETA 1" --list=.\lis
+tings\led.lst LED.s
+332 symbols in table

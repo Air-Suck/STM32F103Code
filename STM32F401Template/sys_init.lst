@@ -1,0 +1,803 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000 40023800 
+                       RCC_BASE
+                               EQU              0x40023800  ;配置RCC寄存器
+                                                            ,时钟
+    2 00000000 40023800 
+                       RCC_CR  EQU              RCC_BASE+0x00 ;配置RCC控制�
+                                                            ��存器
+    3 00000000 40023804 
+                       RCC_PLLCFGR
+                               EQU              RCC_BASE+0x04 ;配置RCC PLL配
+                                                            置寄存器
+    4 00000000 40023808 
+                       RCC_CFGR
+                               EQU              RCC_BASE+0x08 ;配置RCC时钟�
+                                                            ��置寄存器,这�
+                                                            ��用来选择系�
+                                                            �时钟的
+    5 00000000         
+    6 00000000 40023830 
+                       RCC_AHB1ENR
+                               EQU              RCC_BASE+0x30 ;配置RCC使能�
+                                                            ��存器
+    7 00000000 40023850 
+                       RCC_AHB1LPENR
+                               EQU              RCC_BASE+0x50 ;配置RCC低功�
+                                                            ��使能寄存器
+    8 00000000         
+    9 00000000 40020000 
+                       GPIOA_BASE
+                               EQU              0x40020000  ;定义GPIOA的基�
+                                                            ��址
+   10 00000000 40020004 
+                       GPIOA_OTYPER
+                               EQU              GPIOA_BASE+0x04 ;定义GPIOA的
+                                                            输出类型寄存�
+                                                            ��的值
+   11 00000000 40020008 
+                       GPIOA_OSPEEDR
+                               EQU              GPIOA_BASE+0x08 ;定义GPIOA的
+                                                            输出速度寄存�
+                                                            ��的值
+   12 00000000 4002000C 
+                       GPIOA_PUPDR
+                               EQU              GPIOA_BASE+0x0C ;定义GPIOA的
+                                                            上下拉寄存器�
+                                                            ��值
+   13 00000000 40020014 
+                       GPIOA_ODR
+                               EQU              GPIOA_BASE+0x14 ;定义GPIOA的
+                                                            输出数据寄存�
+                                                            ��的值
+   14 00000000         
+   15 00000000 E000E010 
+                       STK_BASE
+                               EQU              0xE000E010  ;定义SysTick的�
+                                                            �地址
+   16 00000000 E000E010 
+                       STK_CTRL
+                               EQU              STK_BASE+0x00 ;定义SysTick的
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+                                                            控制寄存器
+   17 00000000 E000E014 
+                       STK_LOAD
+                               EQU              STK_BASE+0x04 ;定义SysTick的
+                                                            重装载寄存器
+   18 00000000 E000E018 
+                       STK_VAL EQU              STK_BASE+0x08 ;定义SysTick的
+                                                            当前值寄存器
+   19 00000000         
+   20 00000000 40023C00 
+                       FLASH_ACR_LATENCY
+                               EQU              0x40023C00
+   21 00000000         
+   22 00000000         
+   23 00000000                 PRESERVE8
+   24 00000000                 THUMB
+   25 00000000         
+   26 00000000                 AREA             COMMON_DATA, CODE, READWRITE
+   27 00000000 00000000 
+                       DELAY_NTIME
+                               DCD              0X00000000
+   28 00000004                 EXPORT           DELAY_NTIME
+   29 00000004         
+   30 00000004         
+   31 00000004         
+   32 00000004         
+   33 00000004         
+   34 00000004         
+   35 00000004                 AREA             |.text|, CODE, READONLY,ALIGN=3
+ 
+                                                            ;开始代码段   
+                                                             
+   36 00000000         
+   37 00000000         
+   38 00000000         
+   39 00000000         ;时钟中断处理函数
+   40 00000000         SysTick_Handler
+                               PROC
+   41 00000000                 EXPORT           SysTick_Handler
+   42 00000000 B503            PUSH             {R0,R1,LR}
+   43 00000002 484A            LDR              R0,=DELAY_NTIME
+   44 00000004 6801            LDR              R1,[R0]
+   45 00000006 F1A1 0101       SUB              R1,R1,#1
+   46 0000000A 6001            STR              R1,[R0]
+   47 0000000C BD03            POP              {R0,R1,PC}
+   48 0000000E                 ENDP
+   49 0000000E         
+   50 0000000E         ;配置为外部时钟源，即是HSE，8MHz，配置PLL
+                       倍频系数为8，即是PLLM=8，PLLN=336，PLLP=4，�
+                       �算公式为：VCO=HSE(我选择的是外部时钟源,8
+                       MHz)*PLLN/PLLM=8*336/8=336MHz，SYSCLK=VCO/PLLP=336/4=84
+                       MHz
+   51 0000000E         ;并且设置AHB时钟预分频系数为1(HPRE)，HCLK=S
+                       YSCLK/HPRE=84MHz/1=84MHz，配置APB1时钟预分频系�
+                       ��为2，PCLK1=HCLK/APB1=84MHz/2=42MHz，配置APB2时�
+                       �预分频系数为1，PCLK2=HCLK/APB2=84MHz/1=84MHz
+   52 0000000E         Clock_Init
+                               PROC                         ;时钟初始化
+   53 0000000E                 EXPORT           Clock_Init
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   54 0000000E B503            PUSH             {R0,R1,LR}  ;R0,R1,LR中的值�
+                                                            ��入堆栈
+   55 00000010         
+   56 00000010         ;把外部时钟的PLL关掉才能修改倍频,先更换
+                       系统时钟为HSI
+   57 00000010 4847            LDR              R0,=RCC_CFGR
+   58 00000012 6801            LDR              R1,[R0]
+   59 00000014 F021 0103       BIC              R1,#0x3
+   60 00000018 6001            STR              R1,[R0]
+   61 0000001A         
+   62 0000001A 4846            LDR              R0,=RCC_CR  ;这里的地址是
+                                                            RCC_CR的地址
+   63 0000001C 6801            LDR              R1,[R0]     ;将RCC_CR的值装
+                                                            载到R1中
+   64 0000001E F021 7140       BIC              R1,#0x3<<24 ;关闭PLL
+   65 00000022 6001            STR              R1,[R0]     ;
+   66 00000024         
+   67 00000024         
+   68 00000024         ;在使能PLL之前，必须先设置PLL倍频系数
+   69 00000024         ;设置PLL倍频系数为8，即是PLLM=8，PLLN=336，P
+                       LLP=4，计算公式为：VCO=HSE(我选择的是外部�
+                       ��钟源,8MHz)*PLLN/PLLM=8*336/8=336MHz，SYSCLK=VCO/PLL
+                       P=336/4=84MHz
+   70 00000024 4844            LDR              R0,=RCC_PLLCFGR ;这里的地�
+                                                            �是RCC_PLLCFGR的�
+                                                            ��址
+   71 00000026 6801            LDR              R1,[R0]     ;将RCC_PLLCFGR的�
+                                                            ��装载到R1中
+   72 00000028         ;我们设置PLLSRC在第22位，PLLM在第5-0位，PLLN
+                       在第14-6位，PLLP在第17-16位，PLLSRC=1 PLLP=01，
+                       即是4分频，PLLM=1000,即是8分频，PLLN=101010000
+                       ,即是336倍频
+   73 00000028         ;首先将这些位都清零，这些位都置为1作为
+                       BIC的第三个操作数，为：00000000010000110111111
+                       111111111，16进制为：0x0043 7FFF
+   74 00000028         ;BIC R1,R1,#0x437FFF;将RCC_PLLCFGR的第5-0位，第14-
+                       6位，第17-16位清零,这样写不对，立即数只�
+                       ��由8位数字左移或者右移得到，这里的这�
+                       �立即数没办法这样得到，得拆开
+   75 00000028 F021 01FF       BIC              R1,R1,#0xFF
+   76 0000002C F421 41FE       BIC              R1,R1,#0x7F00
+   77 00000030 F421 0186       BIC              R1,R1,#0x430000
+   78 00000034 F021 4170       BIC              R1,R1,#0xF<<28
+   79 00000038         ;ORR R1,R1,#0x00415408;将RCC_PLLCFGR的第5-0位，第1
+                       4-6位，第17-16位设置为我们想要的值:00000000
+                       010000010101010000001000
+   80 00000038 F041 0108       ORR              R1,R1,#0x8
+   81 0000003C F441 41A8       ORR              R1,R1,#0x5400
+   82 00000040 F441 0182       ORR              R1,R1,#0x410000
+   83 00000044 6001            STR              R1,[R0]     ;将修改后的值
+                                                            写回到地址RCC_
+                                                            PLLCFGR
+   84 00000046         
+   85 00000046         ;接着设置AHB时钟预分频系数为1(HPRE)，HCLK=S
+                       YSCLK/HPRE=84MHz/1=84MHz，配置APB1时钟预分频系�
+                       ��为2，PCLK1=HCLK/APB1=84MHz/2=42MHz，配置APB2时�
+                       �预分频系数为1，PCLK2=HCLK/APB2=84MHz/1=84MHz
+   86 00000046         ;并设置sw为PLL，即是选择PLL作为系统时钟
+   87 00000046 483A            LDR              R0,=RCC_CFGR ;这里的地址�
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+                                                            �RCC_CFGR的地址
+   88 00000048 6801            LDR              R1,[R0]     ;将RCC_CFGR的值�
+                                                            ��载到R1中
+   89 0000004A         ;BIC R1,R1,#0x0000FCF3;将RCC_CFGR的第1-0位，第7-4�
+                       ��，第15-10位清零
+   90 0000004A F021 01F3       BIC              R1,R1,#0xF3
+   91 0000004E F421 417C       BIC              R1,R1,#0xFC00
+   92 00000052         ;ORR R1,R1,#0x00001002;将RCC_CFGR的第1-0位，第7-4�
+                       ��，第15-10位
+   93 00000052 F041 0102       ORR              R1,R1,#0x2
+   94 00000056 F441 5180       ORR              R1,R1,#0x1000
+   95 0000005A 6001            STR              R1,[R0]     ;将修改后的值
+                                                            写回到地址RCC_
+                                                            CFGR
+   96 0000005C         
+   97 0000005C         ;将ACR寄存器置为5
+   98 0000005C 4837            LDR              R0,=FLASH_ACR_LATENCY
+   99 0000005E F04F 0105       MOV              R1,#5
+  100 00000062 6001            STR              R1,[R0]     ;
+  101 00000064         
+  102 00000064         ;最后使能外部时钟源，使能PLL
+  103 00000064 4833            LDR              R0,=RCC_CR  ;这里的地址是
+                                                            RCC_CR的地址
+  104 00000066 6801            LDR              R1,[R0]     ;将RCC_CR的值装
+                                                            载到R1中
+  105 00000068 F441 3180       ORR              R1,R1,#0x10000 ;将RCC_CR的第
+                                                            16位设置为1,即
+                                                            是外部时钟源�
+                                                            ��HSE
+  106 0000006C F041 7180       ORR              R1,R1,#0x1000000 ;将RCC_CR的�
+                                                            ��24位设置为1,�
+                                                            ��是使能PLL
+  107 00000070 6001            STR              R1,[R0]     ;将修改后的值
+                                                            写回到地址RCC_
+                                                            CR
+  108 00000072         
+  109 00000072 BD03            POP              {R0,R1,PC}
+  110 00000074                 ENDP
+  111 00000074         
+  112 00000074         
+  113 00000074         
+  114 00000074         LED_Init
+                               PROC                         ;LED初始化
+  115 00000074                 EXPORT           LED_Init
+  116 00000074         
+  117 00000074 B503            PUSH             {R0,R1,LR}  ;R0,R1,LR中的值�
+                                                            ��入堆栈
+  118 00000076         ;使能GPIOA的时钟
+  119 00000076 4832            LDR              R0,=RCC_AHB1ENR ;LDR是把地�
+                                                            �装载到寄存器
+                                                            中(比如R0)。
+  120 00000078 6801            LDR              R1, [R0]    ;这里把AHB1地�
+                                                            �中的内容装载
+                                                            到R1中
+  121 0000007A F041 0101       ORR              R1, R1, #1  ; 将寄存器R1的
+                                                            第1位设置为1
+  122 0000007E 6001            STR              R1, [R0]    ;将修改后的值
+                                                            写回到地址0x40
+                                                            023800+0x50
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+  123 00000080         ;设置GPIOA的时钟为高功耗模式，也就是睡�
+                       �模式下GPIOA的时钟仍然是开启的
+  124 00000080         ;LDR R0,=RCC_AHB1LPENR
+  125 00000080         ;LDR R1, [R0]
+  126 00000080         ;ORR R1, R1, #1
+  127 00000080         ;STR R1, [R0]
+  128 00000080         ;设置GPIOA的时钟为低功耗模式，也就是睡�
+                       �模式下GPIOA的时钟是关闭的
+  129 00000080 4830            LDR              R0,=RCC_AHB1LPENR
+  130 00000082 6801            LDR              R1, [R0]
+  131 00000084 F021 0101       BIC              R1, R1, #1
+  132 00000088 6001            STR              R1, [R0]
+  133 0000008A         ;设置GPIOA pin5的为输出模式,操作寄存器MODER
+                       
+  134 0000008A 482F            LDR              R0,=GPIOA_BASE ;这里的地址
+                                                            是GPIOA的基地�
+                                                            �，同时也是MOD
+                                                            ER寄存器的地�
+                                                            �（因为它的偏
+                                                            移量为0）
+  135 0000008C 6801            LDR              R1,[R0]     ;将GPIOA的MODER�
+                                                            �存器的值装载
+                                                            到R1中
+  136 0000008E F421 6140       BIC              R1,R1,#0xC00 ;将MODER寄存器
+                                                            的第10、11位清
+                                                            零
+  137 00000092 F441 6180       ORR              R1,R1,#0x400 ;将MODER寄存器
+                                                            的第10位设置�
+                                                            �1,即是输出模�
+                                                            ��
+  138 00000096 6001            STR              R1,[R0]     ;将修改后的值
+                                                            写回到地址GPIO
+                                                            A_BASE
+  139 00000098         ;    ;校验
+  140 00000098         ;    LDR R0,=GPIOA_BASE;这里的地址是GPIOA的基地
+                       址，同时也是MODER寄存器的地址（因为它的
+                       偏移量为0）
+  141 00000098         ;                LDR R1,[R0]    ;将GPIOA的MODER寄存�
+                       ��的值装载到R1中
+  142 00000098         ;进一步设置GPIOA pin5的输出模式为推挽输出
+                       ,操作寄存器OTYPER
+  143 00000098 482C            LDR              R0,=GPIOA_OTYPER ;这里的地�
+                                                            ��是GPIOA的OTYPER
+                                                            寄存器的地址�
+                                                            ��因为它的偏�
+                                                            �量为0x04）
+  144 0000009A 6801            LDR              R1,[R0]     ;将GPIOA的OTYPER�
+                                                            ��存器的值装�
+                                                            �到R1中
+  145 0000009C F021 0106       BIC              R1,R1,#0x6  ;将OTYPER寄存器
+                                                            的第1位设置为
+                                                            0,即是推挽输�
+                                                            �
+  146 000000A0 6001            STR              R1,[R0]     ;将修改后的值
+                                                            写回到地址GPIO
+                                                            _OTYPER
+  147 000000A2         ;进一步设置GPIOA pin5的输出模式为高速输出
+                       ,操作寄存器OSPEEDR
+  148 000000A2 482B            LDR              R0,=GPIOA_OSPEEDR ;这里的地
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+                                                            址是GPIOA的OSPEE
+                                                            DR寄存器的地�
+                                                            �（因为它的偏
+                                                            移量为0x08）
+  149 000000A4 6801            LDR              R1,[R0]     ;将GPIOA的OSPEEDR
+                                                            寄存器的值装�
+                                                            ��到R1中
+  150 000000A6 F421 6140       BIC              R1,R1,#0xC00 ;将OSPEEDR寄存�
+                                                            ��的第10、11位�
+                                                            ��零
+  151 000000AA F441 6100       ORR              R1,R1,#0x800 ;将OSPEEDR寄存�
+                                                            ��的第11位设置
+                                                            为1,即是高速�
+                                                            �出
+  152 000000AE 6001            STR              R1,[R0]     ;将修改后的值
+                                                            写回到地址GPIO
+                                                            _OSPEEDR
+  153 000000B0         ;进一步设置GPIOA pin5的输出模式为下拉模式
+                       ,操作寄存器PUPDR
+  154 000000B0 4828            LDR              R0,=GPIOA_PUPDR ;这里的地�
+                                                            �是GPIOA的PUPDR�
+                                                            �存器的地址（
+                                                            因为它的偏移�
+                                                            ��为0x0C）
+  155 000000B2 6801            LDR              R1,[R0]     ;将GPIOA的PUPDR�
+                                                            �存器的值装载
+                                                            到R1中
+  156 000000B4 F421 6140       BIC              R1,R1,#0xC00 ;将PUPDR寄存器
+                                                            的第10、11位清
+                                                            零
+  157 000000B8 F441 6100       ORR              R1,R1,#0x800 ;将PUPDR寄存器
+                                                            的第11位设置�
+                                                            �1,即是下拉模�
+                                                            ��,也就是10
+  158 000000BC 6001            STR              R1,[R0]     ;将修改后的值
+                                                            写回到地址GPIO
+                                                            _PUPDR
+  159 000000BE BD03            POP              {R0,R1,PC}  ;将栈中之前存
+                                                            的R0，R1，LR的�
+                                                            ��返还给R0，R1�
+                                                            ��PC
+  160 000000C0                 ENDP
+  161 000000C0         
+  162 000000C0         LED_ON  PROC
+  163 000000C0                 EXPORT           LED_ON
+  164 000000C0 B503            PUSH             {R0,R1, LR}
+  165 000000C2         
+  166 000000C2         ;设置GPIOA pin5的输出数据为高电平,操作寄�
+                       �器ODR
+  167 000000C2 4825            LDR              R0,=GPIOA_ODR ;这里的地址�
+                                                            ��GPIOA的ODR寄存
+                                                            器的地址（因�
+                                                            ��它的偏移量�
+                                                            �0x14）
+  168 000000C4 6801            LDR              R1,[R0]     ;将GPIOA的ODR寄�
+                                                            ��器的值装载�
+                                                            �R1中
+  169 000000C6 F041 0120       ORR              R1,R1,#0x20 ;将ODR寄存器的
+                                                            第5位设置为1,�
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+                                                            ��是高电平
+  170 000000CA 6001            STR              R1,[R0]     ;将修改后的值
+                                                            写回到地址GPIO
+                                                            _ODR
+  171 000000CC         
+  172 000000CC BD03            POP              {R0,R1,PC}
+  173 000000CE                 ENDP
+  174 000000CE         
+  175 000000CE         LED_OFF PROC
+  176 000000CE                 EXPORT           LED_OFF
+  177 000000CE B503            PUSH             {R0,R1, LR}
+  178 000000D0         
+  179 000000D0         ;设置GPIOA pin5的输出数据为低电平,操作寄�
+                       �器ODR
+  180 000000D0 4821            LDR              R0,=GPIOA_ODR ;这里的地址�
+                                                            ��GPIOA的ODR寄存
+                                                            器的地址（因�
+                                                            ��它的偏移量�
+                                                            �0x14）
+  181 000000D2 6801            LDR              R1,[R0]     ;将GPIOA的ODR寄�
+                                                            ��器的值装载�
+                                                            �R1中
+  182 000000D4 F021 0120       BIC              R1,R1,#0x20 ;将ODR寄存器的
+                                                            第5位设置为0,�
+                                                            ��是低电平
+  183 000000D8 6001            STR              R1,[R0]     ;将修改后的值
+                                                            写回到地址GPIO
+                                                            _ODR
+  184 000000DA         
+  185 000000DA BD03            POP              {R0,R1,PC}
+  186 000000DC                 ENDP
+  187 000000DC         
+  188 000000DC         
+  189 000000DC         
+  190 000000DC         
+  191 000000DC         ;初始化SysTick,这里并没有开启SysTick，只是�
+                       ��置了重装载值和时钟源
+  192 000000DC         SYSTICK_INIT
+                               PROC
+  193 000000DC         
+  194 000000DC                 EXPORT           SYSTICK_INIT
+  195 000000DC B503            PUSH             {R0,R1,LR}
+  196 000000DE         ;SYSTICK 使用外部时钟源，即是AHB/8=84/8=10.5MH
+                       z，开启中断
+  197 000000DE 481F            LDR              R0,=STK_CTRL
+  198 000000E0 6801            LDR              R1,[R0]
+  199 000000E2 F021 0104       BIC              R1,R1,#0x4  ;设置来自HSE/8
+  200 000000E6 F041 0102       ORR              R1,R1,#0x2  ;开启中断
+  201 000000EA 6001            STR              R1,[R0]
+  202 000000EC         ;设置重装载值为0x2904，即是10.5MHz/1000=10500H
+                       z，1ms中断一次
+  203 000000EC 481C            LDR              R0,=STK_LOAD
+  204 000000EE F642 1104       LDR              R1,=0x2904
+  205 000000F2 6001            STR              R1,[R0]
+  206 000000F4 BD03            POP              {R0,R1,PC}
+  207 000000F6                 ENDP
+  208 000000F6         
+  209 000000F6         
+  210 000000F6         
+
+
+
+ARM Macro Assembler    Page 8 
+
+
+  211 000000F6         ;使用SysTick实现的延时函数
+  212 000000F6         ;利用SysTick实现毫秒级延时
+  213 000000F6         ;R0作为参数，表示延时时长
+  214 000000F6         SYS_DELAY_MS
+                               PROC
+  215 000000F6                 EXPORT           SYS_DELAY_MS
+  216 000000F6 B507            PUSH             {R0,R1,R2, LR}
+  217 000000F8         ;设置延时时间
+  218 000000F8 490C            LDR              R1, =DELAY_NTIME
+  219 000000FA 6008            STR              R0, [R1]
+  220 000000FC         ;计数器清零
+  221 000000FC 4919            LDR              R1, =STK_VAL
+  222 000000FE F04F 0200       MOV              R2, #0
+  223 00000102 600A            STR              R2, [R1]
+  224 00000104         ;启动SysTick
+  225 00000104 4915            LDR              R1, =STK_CTRL
+  226 00000106 680A            LDR              R2, [R1]
+  227 00000108 F042 0201       ORR              R2, R2, #0x1 ;设置使能位
+  228 0000010C 600A            STR              R2, [R1]
+  229 0000010E         ;等待延时完成
+  230 0000010E 4907            LDR              R1,=DELAY_NTIME
+  231 00000110         
+  232 00000110 6808    SYS_DLY_NOTOK
+                               LDR              R0,[R1]     ;读取延时时间
+                                                            
+  233 00000112 2800            CMP              R0,#0
+  234 00000114 D1FC            BNE              SYS_DLY_NOTOK
+  235 00000116         ;计数器清零
+  236 00000116 4913            LDR              R1, =STK_VAL
+  237 00000118 F04F 0200       MOV              R2, #0
+  238 0000011C 600A            STR              R2, [R1]
+  239 0000011E         ;关闭SysTick
+  240 0000011E 490F            LDR              R1, =STK_CTRL
+  241 00000120 680A            LDR              R2, [R1]
+  242 00000122 F022 0201       BIC              R2, R2, #0x1 ;清除使能位
+  243 00000126 600A            STR              R2, [R1]
+  244 00000128 BD07            POP              {R0,R1,R2,PC}
+  245 0000012A                 ENDP
+  246 0000012A         
+  247 0000012A BF00            NOP
+  248 0000012C                 END
+              00000000 
+              40023808 
+              40023800 
+              40023804 
+              40023C00 
+              40023830 
+              40023850 
+              40020000 
+              40020004 
+              40020008 
+              4002000C 
+              40020014 
+              E000E010 
+              E000E014 
+              E000E018 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=..\obj\sys_init.d -o..\obj\sys_init.o -I.\RTE\_Target_1 -ID:\Ke
+il5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include -ID:\Keil5\ARM\CMSIS\Inclu
+
+
+
+ARM Macro Assembler    Page 9 
+
+
+de --predefine="__UVISION_VERSION SETA 524" --predefine="STM32F401xx SETA 1" --
+list=..\sys_init.lst Sys_Init.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+COMMON_DATA 00000000
+
+Symbol: COMMON_DATA
+   Definitions
+      At line 26 in file Sys_Init.s
+   Uses
+      None
+Comment: COMMON_DATA unused
+DELAY_NTIME 00000000
+
+Symbol: DELAY_NTIME
+   Definitions
+      At line 27 in file Sys_Init.s
+   Uses
+      At line 28 in file Sys_Init.s
+      At line 43 in file Sys_Init.s
+      At line 218 in file Sys_Init.s
+      At line 230 in file Sys_Init.s
+
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 35 in file Sys_Init.s
+   Uses
+      None
+Comment: .text unused
+Clock_Init 0000000E
+
+Symbol: Clock_Init
+   Definitions
+      At line 52 in file Sys_Init.s
+   Uses
+      At line 53 in file Sys_Init.s
+Comment: Clock_Init used once
+LED_Init 00000074
+
+Symbol: LED_Init
+   Definitions
+      At line 114 in file Sys_Init.s
+   Uses
+      At line 115 in file Sys_Init.s
+Comment: LED_Init used once
+LED_OFF 000000CE
+
+Symbol: LED_OFF
+   Definitions
+      At line 175 in file Sys_Init.s
+   Uses
+      At line 176 in file Sys_Init.s
+Comment: LED_OFF used once
+LED_ON 000000C0
+
+Symbol: LED_ON
+   Definitions
+      At line 162 in file Sys_Init.s
+   Uses
+      At line 163 in file Sys_Init.s
+Comment: LED_ON used once
+SYSTICK_INIT 000000DC
+
+Symbol: SYSTICK_INIT
+   Definitions
+      At line 192 in file Sys_Init.s
+   Uses
+      At line 194 in file Sys_Init.s
+Comment: SYSTICK_INIT used once
+SYS_DELAY_MS 000000F6
+
+Symbol: SYS_DELAY_MS
+   Definitions
+      At line 214 in file Sys_Init.s
+   Uses
+      At line 215 in file Sys_Init.s
+Comment: SYS_DELAY_MS used once
+SYS_DLY_NOTOK 00000110
+
+Symbol: SYS_DLY_NOTOK
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 232 in file Sys_Init.s
+   Uses
+      At line 234 in file Sys_Init.s
+Comment: SYS_DLY_NOTOK used once
+SysTick_Handler 00000000
+
+Symbol: SysTick_Handler
+   Definitions
+      At line 40 in file Sys_Init.s
+   Uses
+      At line 41 in file Sys_Init.s
+Comment: SysTick_Handler used once
+9 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+FLASH_ACR_LATENCY 40023C00
+
+Symbol: FLASH_ACR_LATENCY
+   Definitions
+      At line 20 in file Sys_Init.s
+   Uses
+      At line 98 in file Sys_Init.s
+Comment: FLASH_ACR_LATENCY used once
+GPIOA_BASE 40020000
+
+Symbol: GPIOA_BASE
+   Definitions
+      At line 9 in file Sys_Init.s
+   Uses
+      At line 10 in file Sys_Init.s
+      At line 11 in file Sys_Init.s
+      At line 12 in file Sys_Init.s
+      At line 13 in file Sys_Init.s
+      At line 134 in file Sys_Init.s
+
+GPIOA_ODR 40020014
+
+Symbol: GPIOA_ODR
+   Definitions
+      At line 13 in file Sys_Init.s
+   Uses
+      At line 167 in file Sys_Init.s
+      At line 180 in file Sys_Init.s
+
+GPIOA_OSPEEDR 40020008
+
+Symbol: GPIOA_OSPEEDR
+   Definitions
+      At line 11 in file Sys_Init.s
+   Uses
+      At line 148 in file Sys_Init.s
+Comment: GPIOA_OSPEEDR used once
+GPIOA_OTYPER 40020004
+
+Symbol: GPIOA_OTYPER
+   Definitions
+      At line 10 in file Sys_Init.s
+   Uses
+      At line 143 in file Sys_Init.s
+Comment: GPIOA_OTYPER used once
+GPIOA_PUPDR 4002000C
+
+Symbol: GPIOA_PUPDR
+   Definitions
+      At line 12 in file Sys_Init.s
+   Uses
+      At line 154 in file Sys_Init.s
+Comment: GPIOA_PUPDR used once
+RCC_AHB1ENR 40023830
+
+Symbol: RCC_AHB1ENR
+   Definitions
+      At line 6 in file Sys_Init.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Absolute symbols
+
+      At line 119 in file Sys_Init.s
+Comment: RCC_AHB1ENR used once
+RCC_AHB1LPENR 40023850
+
+Symbol: RCC_AHB1LPENR
+   Definitions
+      At line 7 in file Sys_Init.s
+   Uses
+      At line 129 in file Sys_Init.s
+Comment: RCC_AHB1LPENR used once
+RCC_BASE 40023800
+
+Symbol: RCC_BASE
+   Definitions
+      At line 1 in file Sys_Init.s
+   Uses
+      At line 2 in file Sys_Init.s
+      At line 3 in file Sys_Init.s
+      At line 4 in file Sys_Init.s
+      At line 6 in file Sys_Init.s
+      At line 7 in file Sys_Init.s
+
+RCC_CFGR 40023808
+
+Symbol: RCC_CFGR
+   Definitions
+      At line 4 in file Sys_Init.s
+   Uses
+      At line 57 in file Sys_Init.s
+      At line 87 in file Sys_Init.s
+
+RCC_CR 40023800
+
+Symbol: RCC_CR
+   Definitions
+      At line 2 in file Sys_Init.s
+   Uses
+      At line 62 in file Sys_Init.s
+      At line 103 in file Sys_Init.s
+
+RCC_PLLCFGR 40023804
+
+Symbol: RCC_PLLCFGR
+   Definitions
+      At line 3 in file Sys_Init.s
+   Uses
+      At line 70 in file Sys_Init.s
+Comment: RCC_PLLCFGR used once
+STK_BASE E000E010
+
+Symbol: STK_BASE
+   Definitions
+      At line 15 in file Sys_Init.s
+   Uses
+      At line 16 in file Sys_Init.s
+      At line 17 in file Sys_Init.s
+      At line 18 in file Sys_Init.s
+
+STK_CTRL E000E010
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Absolute symbols
+
+
+Symbol: STK_CTRL
+   Definitions
+      At line 16 in file Sys_Init.s
+   Uses
+      At line 197 in file Sys_Init.s
+      At line 225 in file Sys_Init.s
+      At line 240 in file Sys_Init.s
+
+STK_LOAD E000E014
+
+Symbol: STK_LOAD
+   Definitions
+      At line 17 in file Sys_Init.s
+   Uses
+      At line 203 in file Sys_Init.s
+Comment: STK_LOAD used once
+STK_VAL E000E018
+
+Symbol: STK_VAL
+   Definitions
+      At line 18 in file Sys_Init.s
+   Uses
+      At line 221 in file Sys_Init.s
+      At line 236 in file Sys_Init.s
+
+16 symbols
+362 symbols in table

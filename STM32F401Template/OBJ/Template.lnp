@@ -1,0 +1,17 @@
+--cpu=Cortex-M4.fp
+"..\obj\startup_stm32f401xe.o"
+"..\obj\stm32f4xx_hal_gpio.o"
+"..\obj\stm32f4xx_hal_dma.o"
+"..\obj\stm32f4xx_hal.o"
+"..\obj\stm32f4xx_hal_rcc.o"
+"..\obj\stm32f4xx_hal_cortex.o"
+"..\obj\stm32f4xx_hal_uart.o"
+"..\obj\sys_init.o"
+"..\obj\myi2c.o"
+"..\obj\serial.o"
+"..\obj\system_stm32f4xx.o"
+"..\obj\main.o"
+--strict --scatter "..\OBJ\Template.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "..\Template.map" -o ..\OBJ\Template.axf

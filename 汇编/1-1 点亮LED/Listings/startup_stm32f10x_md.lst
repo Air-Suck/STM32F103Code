@@ -1,0 +1,377 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;;******************** (C) COPYRIGHT 2011 STMicroelectro
+                       nics ********************
+    2 00000000         ;;* File Name          : startup_stm32f10x_md.s
+    3 00000000         ;;* Author             : MCD Application Team
+    4 00000000         ;;* Version            : V3.5.0
+    5 00000000         ;;* Date               : 11-March-2011
+    6 00000000         ;;* Description        : STM32F10x Medium Density Device
+                       s vector table for MDK-ARM 
+    7 00000000         ;;*                      toolchain.  
+    8 00000000         ;;*                      This module performs:
+    9 00000000         ;;*                      - Set the initial SP
+   10 00000000         ;;*                      - Set the initial PC == Reset_H
+                       andler
+   11 00000000         ;;*                      - Set the vector table entries 
+                       with the exceptions ISR address
+   12 00000000         ;;*                      - Configure the clock system
+   13 00000000         ;;*                      - Branches to __main in the C l
+                       ibrary (which eventually
+   14 00000000         ;;*                        calls main()).
+   15 00000000         ;;*                      After Reset the CortexM3 proces
+                       sor is in Thread mode,
+   16 00000000         ;;*                      priority is Privileged, and the
+                        Stack is set to Main.
+   17 00000000         ;;* <<< Use Configuration Wizard in Context Menu >>>   
+   18 00000000         ;;******************************************************
+                       *************************
+   19 00000000         ;; THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS 
+                       AT PROVIDING CUSTOMERS
+   20 00000000         ;; WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN O
+                       RDER FOR THEM TO SAVE TIME.
+   21 00000000         ;; AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIA
+                       BLE FOR ANY DIRECT,
+   22 00000000         ;; INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY
+                        CLAIMS ARISING FROM THE
+   23 00000000         ;; CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTO
+                       MERS OF THE CODING
+   24 00000000         ;; INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR
+                        PRODUCTS.
+   25 00000000         ;;******************************************************
+                       *************************
+   26 00000000         
+   27 00000000         ;; Amount of memory (in bytes) allocated for Stack
+   28 00000000         ;; Tailor this value to your application needs
+   29 00000000         ;; <h> Stack Configuration
+   30 00000000         ;;   <o> Stack Size (in Bytes) <0x0-0xFFFFFFFF:8>
+   31 00000000         ;; </h>
+   32 00000000         
+   33 00000000         ;Stack_Size      EQU     0x00000400
+   34 00000000         
+   35 00000000         ;AREA    STACK, NOINIT, READWRITE, ALIGN=3
+   36 00000000         ;Stack_Mem       SPACE   Stack_Size
+   37 00000000         ;__initial_sp
+   38 00000000         
+   39 00000000         
+   40 00000000         ;; <h> Heap Configuration
+   41 00000000         ;;   <o>  Heap Size (in Bytes) <0x0-0xFFFFFFFF:8>
+   42 00000000         ;; </h>
+   43 00000000         
+   44 00000000         ;Heap_Size       EQU     0x00000200
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   45 00000000         
+   46 00000000         ;AREA    HEAP, NOINIT, READWRITE, ALIGN=3
+   47 00000000         ;__heap_base
+   48 00000000         ;Heap_Mem        SPACE   Heap_Size
+   49 00000000         ;__heap_limit
+   50 00000000         
+   51 00000000         ;PRESERVE8
+   52 00000000         ;THUMB
+   53 00000000         
+   54 00000000         
+   55 00000000         ;; Vector Table Mapped to Address 0 at Reset
+   56 00000000         ;AREA    RESET, DATA, READONLY
+   57 00000000         ;EXPORT  __Vectors
+   58 00000000         ;EXPORT  __Vectors_End
+   59 00000000         ;EXPORT  __Vectors_Size
+   60 00000000         
+   61 00000000         ;__Vectors       DCD     __initial_sp               ; To
+                       p of Stack
+   62 00000000         ;DCD     Reset_Handler              ; Reset Handler
+   63 00000000         ;DCD     NMI_Handler                ; NMI Handler
+   64 00000000         ;DCD     HardFault_Handler          ; Hard Fault Handler
+                       
+   65 00000000         ;DCD     MemManage_Handler          ; MPU Fault Handler
+   66 00000000         ;DCD     BusFault_Handler           ; Bus Fault Handler
+   67 00000000         ;DCD     UsageFault_Handler         ; Usage Fault Handle
+                       r
+   68 00000000         ;DCD     0                          ; Reserved
+   69 00000000         ;DCD     0                          ; Reserved
+   70 00000000         ;DCD     0                          ; Reserved
+   71 00000000         ;DCD     0                          ; Reserved
+   72 00000000         ;DCD     SVC_Handler                ; SVCall Handler
+   73 00000000         ;DCD     DebugMon_Handler           ; Debug Monitor Hand
+                       ler
+   74 00000000         ;DCD     0                          ; Reserved
+   75 00000000         ;DCD     PendSV_Handler             ; PendSV Handler
+   76 00000000         ;DCD     SysTick_Handler            ; SysTick Handler
+   77 00000000         
+   78 00000000         ;; External Interrupts
+   79 00000000         ;DCD     WWDG_IRQHandler            ; Window Watchdog
+   80 00000000         ;DCD     PVD_IRQHandler             ; PVD through EXTI L
+                       ine detect
+   81 00000000         ;DCD     TAMPER_IRQHandler          ; Tamper
+   82 00000000         ;DCD     RTC_IRQHandler             ; RTC
+   83 00000000         ;DCD     FLASH_IRQHandler           ; Flash
+   84 00000000         ;DCD     RCC_IRQHandler             ; RCC
+   85 00000000         ;DCD     EXTI0_IRQHandler           ; EXTI Line 0
+   86 00000000         ;DCD     EXTI1_IRQHandler           ; EXTI Line 1
+   87 00000000         ;DCD     EXTI2_IRQHandler           ; EXTI Line 2
+   88 00000000         ;DCD     EXTI3_IRQHandler           ; EXTI Line 3
+   89 00000000         ;DCD     EXTI4_IRQHandler           ; EXTI Line 4
+   90 00000000         ;DCD     DMA1_Channel1_IRQHandler   ; DMA1 Channel 1
+   91 00000000         ;DCD     DMA1_Channel2_IRQHandler   ; DMA1 Channel 2
+   92 00000000         ;DCD     DMA1_Channel3_IRQHandler   ; DMA1 Channel 3
+   93 00000000         ;DCD     DMA1_Channel4_IRQHandler   ; DMA1 Channel 4
+   94 00000000         ;DCD     DMA1_Channel5_IRQHandler   ; DMA1 Channel 5
+   95 00000000         ;DCD     DMA1_Channel6_IRQHandler   ; DMA1 Channel 6
+   96 00000000         ;DCD     DMA1_Channel7_IRQHandler   ; DMA1 Channel 7
+   97 00000000         ;DCD     ADC1_2_IRQHandler          ; ADC1_2
+   98 00000000         ;DCD     USB_HP_CAN1_TX_IRQHandler  ; USB High Priority 
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+                       or CAN1 TX
+   99 00000000         ;DCD     USB_LP_CAN1_RX0_IRQHandler ; USB Low  Priority 
+                       or CAN1 RX0
+  100 00000000         ;DCD     CAN1_RX1_IRQHandler        ; CAN1 RX1
+  101 00000000         ;DCD     CAN1_SCE_IRQHandler        ; CAN1 SCE
+  102 00000000         ;DCD     EXTI9_5_IRQHandler         ; EXTI Line 9..5
+  103 00000000         ;DCD     TIM1_BRK_IRQHandler        ; TIM1 Break
+  104 00000000         ;DCD     TIM1_UP_IRQHandler         ; TIM1 Update
+  105 00000000         ;DCD     TIM1_TRG_COM_IRQHandler    ; TIM1 Trigger and C
+                       ommutation
+  106 00000000         ;DCD     TIM1_CC_IRQHandler         ; TIM1 Capture Compa
+                       re
+  107 00000000         ;DCD     TIM2_IRQHandler            ; TIM2
+  108 00000000         ;DCD     TIM3_IRQHandler            ; TIM3
+  109 00000000         ;DCD     TIM4_IRQHandler            ; TIM4
+  110 00000000         ;DCD     I2C1_EV_IRQHandler         ; I2C1 Event
+  111 00000000         ;DCD     I2C1_ER_IRQHandler         ; I2C1 Error
+  112 00000000         ;DCD     I2C2_EV_IRQHandler         ; I2C2 Event
+  113 00000000         ;DCD     I2C2_ER_IRQHandler         ; I2C2 Error
+  114 00000000         ;DCD     SPI1_IRQHandler            ; SPI1
+  115 00000000         ;DCD     SPI2_IRQHandler            ; SPI2
+  116 00000000         ;DCD     USART1_IRQHandler          ; USART1
+  117 00000000         ;DCD     USART2_IRQHandler          ; USART2
+  118 00000000         ;DCD     USART3_IRQHandler          ; USART3
+  119 00000000         ;DCD     EXTI15_10_IRQHandler       ; EXTI Line 15..10
+  120 00000000         ;DCD     RTCAlarm_IRQHandler        ; RTC Alarm through 
+                       EXTI Line
+  121 00000000         ;DCD     USBWakeUp_IRQHandler       ; USB Wakeup from su
+                       spend
+  122 00000000         ;__Vectors_End
+  123 00000000         
+  124 00000000         ;__Vectors_Size  EQU  __Vectors_End - __Vectors
+  125 00000000         
+  126 00000000         ;AREA    |.text|, CODE, READONLY
+  127 00000000         
+  128 00000000         ;; Reset handler
+  129 00000000         ;Reset_Handler    PROC
+  130 00000000         ;EXPORT  Reset_Handler             [WEAK]
+  131 00000000         ;IMPORT  __main
+  132 00000000         ;IMPORT  SystemInit
+  133 00000000         ;LDR     R0, =SystemInit
+  134 00000000         ;BLX     R0
+  135 00000000         ;LDR     R0, =__main
+  136 00000000         ;BX      R0
+  137 00000000         ;ENDP
+  138 00000000         
+  139 00000000         ;; Dummy Exception Handlers (infinite loops which can be
+                        modified)
+  140 00000000         
+  141 00000000         ;NMI_Handler     PROC
+  142 00000000         ;EXPORT  NMI_Handler                [WEAK]
+  143 00000000         ;B       .
+  144 00000000         ;ENDP
+  146 00000000         ;HardFault_Handler                 ;PROC
+  147 00000000         ;EXPORT  HardFault_Handler          [WEAK]
+  148 00000000         ;B       .
+  149 00000000         ;ENDP
+  151 00000000         ;MemManage_Handler                 ;PROC
+  152 00000000         ;EXPORT  MemManage_Handler          [WEAK]
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  153 00000000         ;B       .
+  154 00000000         ;ENDP
+  156 00000000         ;BusFault_Handler                 ;PROC
+  157 00000000         ;EXPORT  BusFault_Handler           [WEAK]
+  158 00000000         ;B       .
+  159 00000000         ;ENDP
+  161 00000000         ;UsageFault_Handler                 ;PROC
+  162 00000000         ;EXPORT  UsageFault_Handler         [WEAK]
+  163 00000000         ;B       .
+  164 00000000         ;ENDP
+  165 00000000         ;SVC_Handler     PROC
+  166 00000000         ;EXPORT  SVC_Handler                [WEAK]
+  167 00000000         ;B       .
+  168 00000000         ;ENDP
+  170 00000000         ;DebugMon_Handler                 ;PROC
+  171 00000000         ;EXPORT  DebugMon_Handler           [WEAK]
+  172 00000000         ;B       .
+  173 00000000         ;ENDP
+  174 00000000         ;PendSV_Handler  PROC
+  175 00000000         ;EXPORT  PendSV_Handler             [WEAK]
+  176 00000000         ;B       .
+  177 00000000         ;ENDP
+  178 00000000         ;SysTick_Handler PROC
+  179 00000000         ;EXPORT  SysTick_Handler            [WEAK]
+  180 00000000         ;B       .
+  181 00000000         ;ENDP
+  182 00000000         
+  183 00000000         ;Default_Handler PROC
+  184 00000000         
+  185 00000000         ;EXPORT  WWDG_IRQHandler            [WEAK]
+  186 00000000         ;EXPORT  PVD_IRQHandler             [WEAK]
+  187 00000000         ;EXPORT  TAMPER_IRQHandler          [WEAK]
+  188 00000000         ;EXPORT  RTC_IRQHandler             [WEAK]
+  189 00000000         ;EXPORT  FLASH_IRQHandler           [WEAK]
+  190 00000000         ;EXPORT  RCC_IRQHandler             [WEAK]
+  191 00000000         ;EXPORT  EXTI0_IRQHandler           [WEAK]
+  192 00000000         ;EXPORT  EXTI1_IRQHandler           [WEAK]
+  193 00000000         ;EXPORT  EXTI2_IRQHandler           [WEAK]
+  194 00000000         ;EXPORT  EXTI3_IRQHandler           [WEAK]
+  195 00000000         ;EXPORT  EXTI4_IRQHandler           [WEAK]
+  196 00000000         ;EXPORT  DMA1_Channel1_IRQHandler   [WEAK]
+  197 00000000         ;EXPORT  DMA1_Channel2_IRQHandler   [WEAK]
+  198 00000000         ;EXPORT  DMA1_Channel3_IRQHandler   [WEAK]
+  199 00000000         ;EXPORT  DMA1_Channel4_IRQHandler   [WEAK]
+  200 00000000         ;EXPORT  DMA1_Channel5_IRQHandler   [WEAK]
+  201 00000000         ;EXPORT  DMA1_Channel6_IRQHandler   [WEAK]
+  202 00000000         ;EXPORT  DMA1_Channel7_IRQHandler   [WEAK]
+  203 00000000         ;EXPORT  ADC1_2_IRQHandler          [WEAK]
+  204 00000000         ;EXPORT  USB_HP_CAN1_TX_IRQHandler  [WEAK]
+  205 00000000         ;EXPORT  USB_LP_CAN1_RX0_IRQHandler [WEAK]
+  206 00000000         ;EXPORT  CAN1_RX1_IRQHandler        [WEAK]
+  207 00000000         ;EXPORT  CAN1_SCE_IRQHandler        [WEAK]
+  208 00000000         ;EXPORT  EXTI9_5_IRQHandler         [WEAK]
+  209 00000000         ;EXPORT  TIM1_BRK_IRQHandler        [WEAK]
+  210 00000000         ;EXPORT  TIM1_UP_IRQHandler         [WEAK]
+  211 00000000         ;EXPORT  TIM1_TRG_COM_IRQHandler    [WEAK]
+  212 00000000         ;EXPORT  TIM1_CC_IRQHandler         [WEAK]
+  213 00000000         ;EXPORT  TIM2_IRQHandler            [WEAK]
+  214 00000000         ;EXPORT  TIM3_IRQHandler            [WEAK]
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+  215 00000000         ;EXPORT  TIM4_IRQHandler            [WEAK]
+  216 00000000         ;EXPORT  I2C1_EV_IRQHandler         [WEAK]
+  217 00000000         ;EXPORT  I2C1_ER_IRQHandler         [WEAK]
+  218 00000000         ;EXPORT  I2C2_EV_IRQHandler         [WEAK]
+  219 00000000         ;EXPORT  I2C2_ER_IRQHandler         [WEAK]
+  220 00000000         ;EXPORT  SPI1_IRQHandler            [WEAK]
+  221 00000000         ;EXPORT  SPI2_IRQHandler            [WEAK]
+  222 00000000         ;EXPORT  USART1_IRQHandler          [WEAK]
+  223 00000000         ;EXPORT  USART2_IRQHandler          [WEAK]
+  224 00000000         ;EXPORT  USART3_IRQHandler          [WEAK]
+  225 00000000         ;EXPORT  EXTI15_10_IRQHandler       [WEAK]
+  226 00000000         ;EXPORT  RTCAlarm_IRQHandler        [WEAK]
+  227 00000000         ;EXPORT  USBWakeUp_IRQHandler       [WEAK]
+  228 00000000         
+  229 00000000         ;WWDG_IRQHandler
+  230 00000000         ;PVD_IRQHandler
+  231 00000000         ;TAMPER_IRQHandler
+  232 00000000         ;RTC_IRQHandler
+  233 00000000         ;FLASH_IRQHandler
+  234 00000000         ;RCC_IRQHandler
+  235 00000000         ;EXTI0_IRQHandler
+  236 00000000         ;EXTI1_IRQHandler
+  237 00000000         ;EXTI2_IRQHandler
+  238 00000000         ;EXTI3_IRQHandler
+  239 00000000         ;EXTI4_IRQHandler
+  240 00000000         ;DMA1_Channel1_IRQHandler
+  241 00000000         ;DMA1_Channel2_IRQHandler
+  242 00000000         ;DMA1_Channel3_IRQHandler
+  243 00000000         ;DMA1_Channel4_IRQHandler
+  244 00000000         ;DMA1_Channel5_IRQHandler
+  245 00000000         ;DMA1_Channel6_IRQHandler
+  246 00000000         ;DMA1_Channel7_IRQHandler
+  247 00000000         ;ADC1_2_IRQHandler
+  248 00000000         ;USB_HP_CAN1_TX_IRQHandler
+  249 00000000         ;USB_LP_CAN1_RX0_IRQHandler
+  250 00000000         ;CAN1_RX1_IRQHandler
+  251 00000000         ;CAN1_SCE_IRQHandler
+  252 00000000         ;EXTI9_5_IRQHandler
+  253 00000000         ;TIM1_BRK_IRQHandler
+  254 00000000         ;TIM1_UP_IRQHandler
+  255 00000000         ;TIM1_TRG_COM_IRQHandler
+  256 00000000         ;TIM1_CC_IRQHandler
+  257 00000000         ;TIM2_IRQHandler
+  258 00000000         ;TIM3_IRQHandler
+  259 00000000         ;TIM4_IRQHandler
+  260 00000000         ;I2C1_EV_IRQHandler
+  261 00000000         ;I2C1_ER_IRQHandler
+  262 00000000         ;I2C2_EV_IRQHandler
+  263 00000000         ;I2C2_ER_IRQHandler
+  264 00000000         ;SPI1_IRQHandler
+  265 00000000         ;SPI2_IRQHandler
+  266 00000000         ;USART1_IRQHandler
+  267 00000000         ;USART2_IRQHandler
+  268 00000000         ;USART3_IRQHandler
+  269 00000000         ;EXTI15_10_IRQHandler
+  270 00000000         ;RTCAlarm_IRQHandler
+  271 00000000         ;USBWakeUp_IRQHandler
+  272 00000000         
+  273 00000000         ;B       .
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+  274 00000000         
+  275 00000000         ;ENDP
+  276 00000000         
+  277 00000000         ;ALIGN
+  278 00000000         
+  279 00000000         ;;******************************************************
+                       *************************
+  280 00000000         ;; User Stack and Heap initialization
+  281 00000000         ;;******************************************************
+                       *************************
+  282 00000000         ;IF      :DEF:__MICROLIB           
+  283 00000000         
+  284 00000000         ;EXPORT  __initial_sp
+  285 00000000         ;EXPORT  __heap_base
+  286 00000000         ;EXPORT  __heap_limit
+  287 00000000         
+  288 00000000         ;ELSE
+  289 00000000         
+  290 00000000         ;IMPORT  __use_two_region_memory
+  291 00000000         ;EXPORT  __user_initial_stackheap
+  292 00000000         
+  293 00000000         ;__user_initial_stackheap
+  294 00000000         
+  295 00000000         ;LDR     R0, =  Heap_Mem
+  296 00000000         ;LDR     R1, =(Stack_Mem + Stack_Size)
+  297 00000000         ;LDR     R2, = (Heap_Mem +  Heap_Size)
+  298 00000000         ;LDR     R3, = Stack_Mem
+  299 00000000         ;BX      LR
+  300 00000000         
+  301 00000000         ;ALIGN
+  302 00000000         
+  303 00000000         ;ENDIF
+  304 00000000         
+  305 00000000         ;END
+  306 00000000         
+  307 00000000         ;;******************* (C) COPYRIGHT 2011 STMicroelectron
+                       ics *****END OF FILE*****
+                       
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
+ork --depend=.\objects\startup_stm32f10x_md.d -o.\objects\startup_stm32f10x_md.
+o -I.\RTE\Device\STM32F103C8 -I.\RTE\_stm32 -ID:\Keil5\ARM\PACK\ARM\CMSIS\5.0.1
+\CMSIS\Include -ID:\Keil5\ARM\PACK\Keil\STM32F1xx_DFP\2.2.0\Device\Include --pr
+edefine="__UVISION_VERSION SETA 524" --predefine="_RTE_ SETA 1" --predefine="ST
+M32F10X_MD SETA 1" --list=.\listings\startup_stm32f10x_md.lst RTE\Device\STM32F
+103C8\startup_stm32f10x_md.s
+333 symbols in table

@@ -1,0 +1,14 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+                       
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=.\objects\project.d -o.\objects\project.o -I.\RTE\Device\STM32F
+401RE -I.\RTE\_STM32F401 -ID:\Keil5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include -ID:
+\Keil5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include --predefine="__UVISION_
+VERSION SETA 524" --predefine="_RTE_ SETA 1" --predefine="STM32F401xx SETA 1" -
+-list=.\listings\project.lst Project.s
+333 symbols in table
